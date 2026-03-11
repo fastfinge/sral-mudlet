@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MudletPackage>
+<MudletPackage version="1.001">
+  <TriggerPackage>
+    <TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+      <name>SRAL</name>
+      <script></script>
+      <triggerType>0</triggerType>
+      <conditonLineDelta>0</conditonLineDelta>
+      <mStayOpen>0</mStayOpen>
+      <mCommand></mCommand>
+      <packageName></packageName>
+      <mFgColor>#ff0000</mFgColor>
+      <mBgColor>#ffff00</mBgColor>
+      <mSoundFile></mSoundFile>
+      <colorTriggerFgColor>#000000</colorTriggerFgColor>
+      <colorTriggerBgColor>#000000</colorTriggerBgColor>
+      <regexCodeList>
+        <string></string>
+      </regexCodeList>
+      <regexCodePropertyList>
+        <integer>0</integer>
+      </regexCodePropertyList>
+      <Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+        <name>SRAL - Read Lines</name>
+        <script>sral_pkg.onLine()</script>
+        <triggerType>0</triggerType>
+        <conditonLineDelta>0</conditonLineDelta>
+        <mStayOpen>0</mStayOpen>
+        <mCommand></mCommand>
+        <packageName></packageName>
+        <mFgColor>#ff0000</mFgColor>
+        <mBgColor>#ffff00</mBgColor>
+        <mSoundFile></mSoundFile>
+        <colorTriggerFgColor>#000000</colorTriggerFgColor>
+        <colorTriggerBgColor>#000000</colorTriggerBgColor>
+        <regexCodeList>
+          <string>return true</string>
+        </regexCodeList>
+        <regexCodePropertyList>
+          <integer>4</integer>
+        </regexCodePropertyList>
+      </Trigger>
+    </TriggerGroup>
+  </TriggerPackage>
+  <TimerPackage />
+  <AliasPackage>
+    <AliasGroup isActive="yes" isFolder="yes">
+      <name>SRAL</name>
+      <script></script>
+      <command></command>
+      <packageName></packageName>
+      <regex></regex>
+      <Alias isActive="yes" isFolder="no">
+        <name>SRAL Command Handler</name>
+        <script>
+local args = matches[2] or ""
+local cmd = ""
+local rest = ""
+
+cmd, rest = args:match("^(%S+)%s*(.*)$")
+if not cmd then cmd = "" end
+cmd = cmd:lower()
+
+if cmd == "on" or cmd == "enable" then
+  sral_pkg.enable()
+elseif cmd == "off" or cmd == "disable" then
+  sral_pkg.disable()
+elseif cmd == "toggle" then
+  sral_pkg.toggle()
+elseif cmd == "stop" or cmd == "silence" or cmd == "shutup" then
+  sral_pkg.stop()
+elseif cmd == "pause" then
+  sral_pkg.pause()
+elseif cmd == "resume" then
+  sral_pkg.resume()
+elseif cmd == "info" or cmd == "status" then
+  sral_pkg.info()
+elseif cmd == "say" or cmd == "speak" then
+  if rest ~= "" then
+    sral_pkg.speak(rest, true)
+  else
+    cecho("&lt;DarkOrange&gt;[SRAL] Usage: sral say &lt;text&gt;\n&lt;reset&gt;")
+  end
+elseif cmd == "braille" then
+  if rest ~= "" then
+    sral_pkg.braille(rest)
+  else
+    cecho("&lt;DarkOrange&gt;[SRAL] Usage: sral braille &lt;text&gt;\n&lt;reset&gt;")
+  end
+elseif cmd == "interrupt" then
+  if rest == "on" or rest == "true" then
+    sral_pkg.config.interrupt = true
+    cecho("&lt;DarkOrange&gt;[SRAL] Interrupt mode: ON\n&lt;reset&gt;")
+  elseif rest == "off" or rest == "false" then
+    sral_pkg.config.interrupt = false
+    cecho("&lt;DarkOrange&gt;[SRAL] Interrupt mode: OFF\n&lt;reset&gt;")
+  else
+    cecho("&lt;DarkOrange&gt;[SRAL] Interrupt mode is: " .. tostring(sral_pkg.config.interrupt) .. "\n&lt;reset&gt;")
+  end
+elseif cmd == "mode" then
+  if rest == "output" or rest == "both" then
+    sral_pkg.config.use_output = true
+    cecho("&lt;DarkOrange&gt;[SRAL] Output mode: Speech + Braille\n&lt;reset&gt;")
+  elseif rest == "speech" or rest == "speak" then
+    sral_pkg.config.use_output = false
+    cecho("&lt;DarkOrange&gt;[SRAL] Output mode: Speech only\n&lt;reset&gt;")
+  else
+    local mode = sral_pkg.config.use_output and "Speech + Braille" or "Speech only"
+    cecho("&lt;DarkOrange&gt;[SRAL] Output mode: " .. mode .. "\n&lt;reset&gt;")
+  end
+elseif cmd == "exclude" then
+  if rest ~= "" then
+    sral_pkg.exclude(rest)
+  else
+    cecho("&lt;DarkOrange&gt;[SRAL] Usage: sral exclude &lt;pattern&gt;\n&lt;reset&gt;")
+    if #sral_pkg.config.excluded_patterns &gt; 0 then
+      cecho("&lt;DarkOrange&gt;[SRAL] Current exclusions:\n&lt;reset&gt;")
+      for i, p in ipairs(sral_pkg.config.excluded_patterns) do
+        cecho("&lt;DarkOrange&gt;  " .. i .. ". " .. p .. "\n&lt;reset&gt;")
+      end
+    end
+  end
+elseif cmd == "unexclude" then
+  if rest ~= "" then
+    sral_pkg.unexclude(rest)
+  else
+    cecho("&lt;DarkOrange&gt;[SRAL] Usage: sral unexclude &lt;pattern&gt;\n&lt;reset&gt;")
+  end
+elseif cmd == "save" then
+  sral_pkg.saveConfig()
+elseif cmd == "load" then
+  sral_pkg.loadConfig()
+elseif cmd == "reinit" then
+  sral_pkg.shutdown()
+  sral_pkg._initialized = false
+  sral_pkg.init()
+elseif cmd == "echo" then
+  if rest == "on" or rest == "true" then
+    sral_pkg.config.echo_to_console = true
+    cecho("&lt;DarkOrange&gt;[SRAL] Console echo: ON\n&lt;reset&gt;")
+  elseif rest == "off" or rest == "false" then
+    sral_pkg.config.echo_to_console = false
+    cecho("&lt;DarkOrange&gt;[SRAL] Console echo: OFF\n&lt;reset&gt;")
+  else
+    cecho("&lt;DarkOrange&gt;[SRAL] Console echo is: " .. tostring(sral_pkg.config.echo_to_console) .. "\n&lt;reset&gt;")
+  end
+elseif cmd == "prefix" then
+  sral_pkg.config.prefix = rest
+  if rest == "" then
+    cecho("&lt;DarkOrange&gt;[SRAL] Prefix cleared.\n&lt;reset&gt;")
+  else
+    cecho("&lt;DarkOrange&gt;[SRAL] Prefix set to: " .. rest .. "\n&lt;reset&gt;")
+  end
+elseif cmd == "help" or cmd == "" then
+  cecho("&lt;DarkOrange&gt;[SRAL] Screen Reader Abstraction Library for Mudlet\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral on/off/toggle     - Enable/disable screen reader output\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral stop              - Stop current speech\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral pause/resume      - Pause/resume speech\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral info              - Show SRAL status and engine info\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral say &lt;text&gt;        - Speak specific text\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral braille &lt;text&gt;    - Send text to braille display\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral interrupt on/off  - Toggle speech interruption\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral mode output/speech - Set output mode\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral exclude &lt;pattern&gt; - Exclude lines matching pattern\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral unexclude &lt;pat&gt;   - Remove exclusion pattern\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral prefix &lt;text&gt;     - Set speech prefix (blank to clear)\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral echo on/off       - Toggle console status messages\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral save/load         - Save/load configuration\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral reinit            - Reinitialize SRAL library\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  sral help              - Show this help\n&lt;reset&gt;")
+else
+  cecho("&lt;DarkOrange&gt;[SRAL] Unknown command: " .. cmd .. ". Type 'sral help' for usage.\n&lt;reset&gt;")
+end
+        </script>
+        <command></command>
+        <packageName></packageName>
+        <regex>^sral(?:\s+(.*))?$</regex>
+      </Alias>
+    </AliasGroup>
+  </AliasPackage>
+  <ActionPackage />
+  <ScriptPackage>
+    <Script isActive="yes" isFolder="no">
+      <name>SRAL - Core</name>
+      <packageName></packageName>
+      <script>---------------------------------------------------------------------------
+-- SRAL Mudlet Package
+-- Screen Reader Abstraction Library integration for Mudlet
+-- Uses a native Lua C module (sral.dll) to call SRAL's API
+--
+-- Requires:
+--   sral_bridge.dll  (Lua C module - the bridge, included with this package)
+--   SRAL.dll         (SRAL library from https://github.com/m1maker/SRAL/releases)
+--   Both placed in: getMudletHomeDir() .. "/sral-mudlet/"
+---------------------------------------------------------------------------
+
+sral_pkg = sral_pkg or {}
+
+-- Configuration
+sral_pkg.config = sral_pkg.config or {
+  enabled = true,
+  interrupt = true,
+  use_output = true,
+  strip_colors = true,
+  strip_blanks = true,
+  prefix = "",
+  max_length = 0,
+  echo_to_console = false,
+  excluded_patterns = {},
+}
+
+-- Internal state
+sral_pkg._lib = nil
+sral_pkg._initialized = false
+
+---------------------------------------------------------------------------
+-- Text Processing
+---------------------------------------------------------------------------
+
+local function stripAnsi(text)
+  if not text then return "" end
+  text = text:gsub("\27%[%d*;?%d*;?%d*[A-Za-z]", "")
+  text = text:gsub("\27%[[%d;]*m", "")
+  return text
+end
+
+local function processText(text)
+  if not text or text == "" then return nil end
+  if sral_pkg.config.strip_colors then text = stripAnsi(text) end
+  text = text:match("^%s*(.-)%s*$")
+  if sral_pkg.config.strip_blanks and (text == "" or text:match("^%s*$")) then return nil end
+  for _, pattern in ipairs(sral_pkg.config.excluded_patterns) do
+    if text:match(pattern) then return nil end
+  end
+  if sral_pkg.config.prefix ~= "" then text = sral_pkg.config.prefix .. text end
+  if sral_pkg.config.max_length &gt; 0 and #text &gt; sral_pkg.config.max_length then
+    text = text:sub(1, sral_pkg.config.max_length)
+  end
+  return text
+end
+
+---------------------------------------------------------------------------
+-- Logging
+---------------------------------------------------------------------------
+
+local function sralEcho(msg)
+  local formatted = "[SRAL] " .. msg .. "\n"
+  if sral_pkg.config.echo_to_console then
+    cecho("&lt;DarkOrange&gt;" .. formatted .. "&lt;reset&gt;")
+  end
+  debugc(formatted)
+end
+
+---------------------------------------------------------------------------
+-- Engine Name Lookup
+---------------------------------------------------------------------------
+
+sral_pkg.ENGINE_NAMES = {
+  [0]    = "None",
+  [2]    = "NVDA",
+  [4]    = "JAWS",
+  [8]    = "ZDSR",
+  [16]   = "Narrator",
+  [32]   = "UIA",
+  [64]   = "SAPI",
+  [128]  = "Speech Dispatcher",
+  [256]  = "NSSpeech",
+  [512]  = "VoiceOver",
+  [1024] = "AVSpeech",
+}
+
+function sral_pkg.engineList(bitmask)
+  local engines = {}
+  for bit, name in pairs(sral_pkg.ENGINE_NAMES) do
+    if bit &gt; 0 then
+      local div = math.floor(bitmask / bit)
+      if div % 2 == 1 then
+        table.insert(engines, name)
+      end
+    end
+  end
+  if #engines == 0 then return "None" end
+  return table.concat(engines, ", ")
+end
+
+---------------------------------------------------------------------------
+-- Library Loading
+---------------------------------------------------------------------------
+
+function sral_pkg.init()
+  if sral_pkg._initialized then
+    sralEcho("Already initialized.")
+    return true
+  end
+
+  -- Set up package.cpath to find our DLLs
+  local home = getMudletHomeDir()
+  local pkgDir = home .. "/sral-mudlet/"
+  local sep = package.config:sub(1, 1)
+  local ext = (sep == "\\") and "dll" or "so"
+
+  -- Add our package directory to the C module search path
+  local pattern = pkgDir .. "?." .. ext
+  if not package.cpath:find(pkgDir, 1, true) then
+    package.cpath = pattern .. ";" .. package.cpath
+  end
+
+  -- Also make sure SRAL.dll can be found by Windows loader
+  -- by adding the directory to the PATH
+  if sep == "\\" then
+    local path = os.getenv("PATH") or ""
+    if not path:find(pkgDir, 1, true) then
+      -- Use os.execute to set PATH for this process (Windows)
+      -- Actually, we can't easily modify PATH from Lua.
+      -- Instead, we'll pass the full path to sral.load()
+    end
+  end
+
+  -- Try to load the C module
+  local ok, lib = pcall(require, "sral_bridge")
+  if not ok then
+    sralEcho("Failed to load sral_bridge C module: " .. tostring(lib))
+    sralEcho("Make sure sral_bridge.dll is in: " .. pkgDir)
+    return false
+  end
+  sral_pkg._lib = lib
+
+  -- Load the actual SRAL library
+  local sral_dll_path = pkgDir .. "SRAL." .. ext
+  local loaded, err = lib.load(sral_dll_path)
+  if not loaded then
+    -- Try without full path (system search)
+    loaded, err = lib.load("SRAL." .. ext)
+    if not loaded then
+      sralEcho("Failed to load SRAL library: " .. tostring(err))
+      sralEcho("Make sure SRAL.dll is in: " .. pkgDir)
+      return false
+    end
+  end
+  sralEcho("SRAL library loaded.")
+
+  -- Initialize SRAL
+  local result = lib.initialize(0)
+  if not result then
+    sralEcho("SRAL_Initialize returned false. No screen reader engines found.")
+  end
+  sral_pkg._initialized = true
+
+  -- Report engine info
+  local engine = lib.get_current_engine()
+  local engineName = lib.get_engine_name(engine)
+  sralEcho("Current engine: " .. engineName)
+  local available = lib.get_available_engines()
+  sralEcho("Available engines: " .. sral_pkg.engineList(available))
+
+  return true
+end
+
+function sral_pkg.shutdown()
+  if sral_pkg._initialized and sral_pkg._lib then
+    sral_pkg._lib.uninitialize()
+    sral_pkg._initialized = false
+    sralEcho("SRAL shut down.")
+  end
+end
+
+---------------------------------------------------------------------------
+-- Public API
+---------------------------------------------------------------------------
+
+function sral_pkg.speak(text, interrupt)
+  if not sral_pkg._initialized or not sral_pkg._lib then return false end
+  if not sral_pkg.config.enabled then return false end
+  text = processText(text)
+  if not text then return false end
+  if interrupt == nil then interrupt = sral_pkg.config.interrupt end
+  if sral_pkg.config.use_output then
+    return sral_pkg._lib.output(text, interrupt)
+  else
+    return sral_pkg._lib.speak(text, interrupt)
+  end
+end
+
+function sral_pkg.braille(text)
+  if not sral_pkg._initialized or not sral_pkg._lib then return false end
+  if not sral_pkg.config.enabled then return false end
+  text = processText(text)
+  if not text then return false end
+  return sral_pkg._lib.braille(text)
+end
+
+function sral_pkg.output(text, interrupt)
+  if not sral_pkg._initialized or not sral_pkg._lib then return false end
+  if not sral_pkg.config.enabled then return false end
+  text = processText(text)
+  if not text then return false end
+  if interrupt == nil then interrupt = sral_pkg.config.interrupt end
+  return sral_pkg._lib.output(text, interrupt)
+end
+
+function sral_pkg.stop()
+  if not sral_pkg._initialized or not sral_pkg._lib then return false end
+  return sral_pkg._lib.stop_speech()
+end
+
+function sral_pkg.pause()
+  if not sral_pkg._initialized or not sral_pkg._lib then return false end
+  return sral_pkg._lib.pause_speech()
+end
+
+function sral_pkg.resume()
+  if not sral_pkg._initialized or not sral_pkg._lib then return false end
+  return sral_pkg._lib.resume_speech()
+end
+
+function sral_pkg.isSpeaking()
+  if not sral_pkg._initialized or not sral_pkg._lib then return false end
+  return sral_pkg._lib.is_speaking()
+end
+
+function sral_pkg.info()
+  if not sral_pkg._initialized or not sral_pkg._lib then
+    cecho("&lt;DarkOrange&gt;[SRAL] Not initialized.\n&lt;reset&gt;")
+    return
+  end
+  local lib = sral_pkg._lib
+  local engine = lib.get_current_engine()
+  local engineName = lib.get_engine_name(engine)
+  local available = lib.get_available_engines()
+  local active = lib.get_active_engines()
+  cecho("&lt;DarkOrange&gt;[SRAL] Status:\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  Enabled: " .. tostring(sral_pkg.config.enabled) .. "\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  Interrupt: " .. tostring(sral_pkg.config.interrupt) .. "\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  Mode: " .. (sral_pkg.config.use_output and "Speech + Braille" or "Speech only") .. "\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  Engine: " .. engineName .. " (ID: " .. engine .. ")\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  Available: " .. sral_pkg.engineList(available) .. "\n&lt;reset&gt;")
+  cecho("&lt;DarkOrange&gt;  Active: " .. sral_pkg.engineList(active) .. "\n&lt;reset&gt;")
+end
+
+function sral_pkg.enable()
+  sral_pkg.config.enabled = true
+  sralEcho("Screen reader output enabled.")
+  sral_pkg.speak("SRAL enabled.", true)
+end
+
+function sral_pkg.disable()
+  sral_pkg.speak("SRAL disabled.", true)
+  sral_pkg.config.enabled = false
+  sralEcho("Screen reader output disabled.")
+end
+
+function sral_pkg.toggle()
+  if sral_pkg.config.enabled then sral_pkg.disable() else sral_pkg.enable() end
+end
+
+function sral_pkg.exclude(pattern)
+  table.insert(sral_pkg.config.excluded_patterns, pattern)
+  sralEcho("Added exclusion: " .. pattern)
+end
+
+function sral_pkg.unexclude(pattern)
+  for i, p in ipairs(sral_pkg.config.excluded_patterns) do
+    if p == pattern then
+      table.remove(sral_pkg.config.excluded_patterns, i)
+      sralEcho("Removed exclusion: " .. pattern)
+      return
+    end
+  end
+  sralEcho("Pattern not found: " .. pattern)
+end
+
+function sral_pkg.saveConfig()
+  local path = getMudletHomeDir() .. "/sral_config.lua"
+  table.save(path, sral_pkg.config)
+  sralEcho("Configuration saved.")
+end
+
+function sral_pkg.loadConfig()
+  local path = getMudletHomeDir() .. "/sral_config.lua"
+  local loaded = {}
+  if io.open(path, "r") then
+    table.load(path, loaded)
+    for k, v in pairs(loaded) do sral_pkg.config[k] = v end
+    sralEcho("Configuration loaded.")
+  end
+end
+
+---------------------------------------------------------------------------
+-- Trigger Handler
+---------------------------------------------------------------------------
+
+function sral_pkg.onLine()
+  if not sral_pkg._initialized or not sral_pkg.config.enabled then return end
+  local text = line
+  if text then sral_pkg.speak(text) end
+end
+
+---------------------------------------------------------------------------
+-- Lifecycle
+---------------------------------------------------------------------------
+
+function sral_pkg.onLoad()
+  sralEcho("Loading SRAL Mudlet package...")
+  sral_pkg.loadConfig()
+  if sral_pkg.init() then
+    sralEcho("SRAL ready. Type 'sral help' for commands.")
+  else
+    cecho("&lt;red&gt;[SRAL] Failed to initialize. Check the error console (Ctrl+D).\n&lt;reset&gt;")
+    cecho("&lt;red&gt;[SRAL] Put both sral_bridge.dll and SRAL.dll in: " .. getMudletHomeDir() .. "/sral-mudlet/\n&lt;reset&gt;")
+  end
+end
+
+function sral_pkg.onExit()
+  sral_pkg.saveConfig()
+  sral_pkg.shutdown()
+end
+
+-- Auto-initialize
+sral_pkg.onLoad()
+      </script>
+      <eventHandlerList>
+        <string>sysLoadEvent</string>
+        <string>sysExitEvent</string>
+      </eventHandlerList>
+    </Script>
+    <Script isActive="yes" isFolder="no">
+      <name>SRAL - Event Handlers</name>
+      <packageName></packageName>
+      <script>
+function sralEventHandler(event, ...)
+  if event == "sysLoadEvent" then
+    if not sral_pkg._initialized then
+      sral_pkg.onLoad()
+    end
+  elseif event == "sysExitEvent" then
+    sral_pkg.onExit()
+  end
+end
+      </script>
+      <eventHandlerList>
+        <string>sysLoadEvent</string>
+        <string>sysExitEvent</string>
+      </eventHandlerList>
+    </Script>
+  </ScriptPackage>
+  <KeyPackage />
+</MudletPackage>

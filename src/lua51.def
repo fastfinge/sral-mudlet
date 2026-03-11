@@ -1,0 +1,17 @@
+LIBRARY lua51.dll
+EXPORTS
+    luaL_register
+    luaL_checkinteger
+    luaL_optinteger
+    luaL_checklstring
+    luaL_optlstring
+    lua_pushboolean
+    lua_pushinteger
+    lua_pushnil
+    lua_pushstring
+    lua_pushfstring
+    lua_toboolean
+    lua_setfield
+    lua_createtable
+    lua_settop
+    lua_gettop

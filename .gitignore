@@ -1,0 +1,8 @@
+# Build intermediates
+build/
+*.o
+*.a
+
+# OS files
+.DS_Store
+Thumbs.db
